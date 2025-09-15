@@ -1,0 +1,37 @@
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+Build artifacts
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+[Tt]estResults/
+*.log
+*.pdb
+*.orig
+*.scc
+*.vspscc
+
+NuGet packages
+packages/
+.nupkg
+*.nupkg
+project.lock.json
+
+Rider / ReSharper
+*.DotSettings
+*.userprefs
+
+OS-specific files
+.DS_Store
+Thumbs.db
+
+Other temp files
+*.tmp
+*.temp
+*~
+*.bak
