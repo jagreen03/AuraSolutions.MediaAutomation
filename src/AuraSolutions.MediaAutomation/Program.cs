@@ -5,9 +5,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-
 using Xabe.FFmpeg;
-using Xabe.FFmpeg.Downloader;
+using System.Linq; // Added for the .First() method
 
 /// <summary>
 /// A client for interacting with the Hugging Face Inference API and FFmpeg for media automation.
@@ -88,6 +87,36 @@ public class MediaAutomationClient
 	}
 
 	/// <summary>
+	/// Creates a video from a static image for a specified duration.
+	/// </summary>
+	/// <param name="imageFilePath">The path to the input image file.</param>
+	/// <param name="durationInSeconds">The desired duration of the output video in seconds.</param>
+	/// <param name="outputFilePath">The desired path for the output video file.</param>
+	public async Task CreateVideoFromImageAsync(string imageFilePath, int durationInSeconds, string outputFilePath)
+	{
+		Console.WriteLine($"Creating video from image '{imageFilePath}'...");
+
+		try
+		{
+			// Use Conversions.New() and then AddParameter for the input image.
+			var conversion = FFmpeg.Conversions.New()
+				.AddParameter($"-loop 1 -i \"{imageFilePath}\"")
+				.AddParameter($"-t {durationInSeconds}")
+				.AddParameter($"-c:v libx264 -pix_fmt yuv420p") // Use a standard codec and pixel format
+				.SetOutput(outputFilePath);
+
+			await conversion.Start();
+
+			Console.WriteLine($"Video successfully created and saved to {outputFilePath}");
+		}
+		catch(Exception ex)
+		{
+			Console.WriteLine($"An error occurred during video creation: {ex.Message}");
+			throw;
+		}
+	}
+
+	/// <summary>
 	/// Combines a video file with one or more audio files using FFmpeg.
 	/// </summary>
 	/// <param name="videoFilePath">The path to the input video file.</param>
@@ -103,13 +132,13 @@ public class MediaAutomationClient
 
 			// Get the video media info and add the video stream
 			var videoInfo = await FFmpeg.GetMediaInfo(videoFilePath);
-			conversion.AddStream(videoInfo.VideoStreams);
+			conversion.AddStream(videoInfo.VideoStreams.First());
 
 			// Get the audio media info for each audio file and add the audio streams
 			foreach(var audioPath in audioFilePaths)
 			{
 				var audioInfo = await FFmpeg.GetMediaInfo(audioPath);
-				conversion.AddStream(audioInfo.AudioStreams);
+				conversion.AddStream(audioInfo.AudioStreams.First());
 			}
 
 			// Set the output path and start the conversion.
@@ -175,18 +204,22 @@ public class MediaAutomationClient
 
 		Console.WriteLine();
 
-		// Video Assembly
-		// This is the source video file that the audio will be combined with.
-		// For now, you will need to manually place a video file in the output folder.
+		// Video Generation and Assembly
+		var imageSourcePath = Path.Combine(AppContext.BaseDirectory, "image_source.jpg");
 		var videoFilePath = Path.Combine(AppContext.BaseDirectory, "video_source.mp4");
 		var outputVideoPath = "final_output.mp4";
+		var videoDuration = 10; // seconds
 
-		if(!File.Exists(videoFilePath))
+		if(!File.Exists(imageSourcePath))
 		{
-			Console.WriteLine($"The video source file '{videoFilePath}' was not found. Please add a video file to the project's output folder (bin\\Debug\\net8.0).");
+			Console.WriteLine($"The image source file '{imageSourcePath}' was not found. Please add a JPG file to the project's output folder (bin\\Debug\\net8.0).");
 			return;
 		}
 
+		// Create the placeholder video from the image
+		await client.CreateVideoFromImageAsync(imageSourcePath, videoDuration, videoFilePath);
+
+		// Combine the newly created video with the audio files
 		await client.CombineAudioAndVideoAsync(videoFilePath, new[] { musicFilePath, voiceoverFilePath }, outputVideoPath);
 	}
 }
