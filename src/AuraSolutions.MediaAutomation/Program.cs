@@ -1,166 +1,18 @@
-﻿using System;
+﻿using AuraSolutions.Core;
+
+using System;
 using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Xabe.FFmpeg;
-using System.Linq; // Added for the .First() method
 
-/// <summary>
-/// A client for interacting with the Hugging Face Inference API and FFmpeg for media automation.
-/// </summary>
-public class MediaAutomationClient
+public class Program
 {
-	// A single HttpClient instance should be used for the lifetime of the application.
-	private static readonly HttpClient httpClient = new HttpClient();
-	private readonly string _apiToken;
-
-	// Replace with your actual API token
 	private const string ApiToken = "YOUR_HUGGING_FACE_API_TOKEN";
 
-	/// <summary>
-	/// Initializes a new instance of the MediaAutomationClient class.
-	/// </summary>
-	/// <param name="apiToken">The Hugging Face API token for authentication.</param>
-	public MediaAutomationClient(string apiToken)
-	{
-		_apiToken = apiToken;
-		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiToken);
-	}
-
-	/// <summary>
-	/// Generates music from a text prompt using the MusicGen model.
-	/// </summary>
-	/// <param name="prompt">The text prompt describing the desired music.</param>
-	/// <returns>A byte array containing the generated audio data (e.g., MP3).</returns>
-	public async Task<byte[]> GenerateMusicAsync(string prompt)
-	{
-		// The URL for the MusicGen model on the Hugging Face Inference API.
-		var modelUrl = "https://api-inference.huggingface.co/models/facebook/musicgen-large";
-		var payload = new { inputs = prompt };
-		var jsonPayload = JsonSerializer.Serialize(payload);
-
-		var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-		try
-		{
-			var response = await httpClient.PostAsync(modelUrl, content);
-			response.EnsureSuccessStatusCode(); // Throws an exception on failure
-
-			return await response.Content.ReadAsByteArrayAsync();
-		}
-		catch(HttpRequestException ex)
-		{
-			Console.WriteLine($"Error calling Hugging Face API: {ex.Message}");
-			throw;
-		}
-	}
-
-	/// <summary>
-	/// Generates a voiceover from a text prompt using a Text-to-Speech (TTS) model.
-	/// </summary>
-	/// <param name="prompt">The text to be converted to speech.</param>
-	/// <returns>A byte array containing the generated audio data.</param>
-	public async Task<byte[]> GenerateVoiceoverAsync(string prompt)
-	{
-		// Use a Text-to-Speech model URL from Hugging Face.
-		var modelUrl = "https://api-inference.huggingface.co/models/facebook/mms-tts-eng";
-		var payload = new { inputs = prompt };
-		var jsonPayload = JsonSerializer.Serialize(payload);
-
-		var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-		try
-		{
-			var response = await httpClient.PostAsync(modelUrl, content);
-			response.EnsureSuccessStatusCode();
-
-			return await response.Content.ReadAsByteArrayAsync();
-		}
-		catch(HttpRequestException ex)
-		{
-			Console.WriteLine($"Error calling Hugging Face TTS API: {ex.Message}");
-			throw;
-		}
-	}
-
-	/// <summary>
-	/// Creates a video from a static image for a specified duration.
-	/// </summary>
-	/// <param name="imageFilePath">The path to the input image file.</param>
-	/// <param name="durationInSeconds">The desired duration of the output video in seconds.</param>
-	/// <param name="outputFilePath">The desired path for the output video file.</param>
-	public async Task CreateVideoFromImageAsync(string imageFilePath, int durationInSeconds, string outputFilePath)
-	{
-		Console.WriteLine($"Creating video from image '{imageFilePath}'...");
-
-		try
-		{
-			// Use Conversions.New() and then AddParameter for the input image.
-			var conversion = FFmpeg.Conversions.New()
-				.AddParameter($"-loop 1 -i \"{imageFilePath}\"")
-				.AddParameter($"-t {durationInSeconds}")
-				.AddParameter($"-c:v libx264 -pix_fmt yuv420p") // Use a standard codec and pixel format
-				.SetOutput(outputFilePath);
-
-			await conversion.Start();
-
-			Console.WriteLine($"Video successfully created and saved to {outputFilePath}");
-		}
-		catch(Exception ex)
-		{
-			Console.WriteLine($"An error occurred during video creation: {ex.Message}");
-			throw;
-		}
-	}
-
-	/// <summary>
-	/// Combines a video file with one or more audio files using FFmpeg.
-	/// </summary>
-	/// <param name="videoFilePath">The path to the input video file.</param>
-	/// <param name="audioFilePaths">An array of paths to the audio files to combine.</param>
-	/// <param name="outputFilePath">The desired path for the output video file.</param>
-	public async Task CombineAudioAndVideoAsync(string videoFilePath, string[] audioFilePaths, string outputFilePath)
-	{
-		Console.WriteLine("Starting video and audio combination...");
-
-		try
-		{
-			var conversion = FFmpeg.Conversions.New();
-
-			// Get the video media info and add the video stream
-			var videoInfo = await FFmpeg.GetMediaInfo(videoFilePath);
-			conversion.AddStream(videoInfo.VideoStreams.First());
-
-			// Get the audio media info for each audio file and add the audio streams
-			foreach(var audioPath in audioFilePaths)
-			{
-				var audioInfo = await FFmpeg.GetMediaInfo(audioPath);
-				conversion.AddStream(audioInfo.AudioStreams.First());
-			}
-
-			// Set the output path and start the conversion.
-			await conversion.SetOutput(outputFilePath).Start();
-
-			Console.WriteLine($"Video successfully created and saved to {outputFilePath}");
-		}
-		catch(Exception ex)
-		{
-			Console.WriteLine($"An error occurred during video assembly: {ex.Message}");
-			throw;
-		}
-	}
-
-	/// <summary>
-	/// The main entry point of the program.
-	/// </summary>
 	public static async Task Main(string[] args)
 	{
 		// Set the path for the FFmpeg executables. This will handle the download automatically
 		// when a conversion is requested.
-		FFmpeg.SetExecutablesPath(Path.Combine(AppContext.BaseDirectory, "ffmpeg"));
+		Xabe.FFmpeg.FFmpeg.SetExecutablesPath(Path.Combine(AppContext.BaseDirectory, "ffmpeg"));
 
 		if(string.IsNullOrEmpty(ApiToken) || ApiToken == "YOUR_HUGGING_FACE_API_TOKEN")
 		{

@@ -1,9 +1,10 @@
-AuraSolutions.MediaAutomation.sln:AuraSolutions.MediaAutomation Solution:AuraSolutions.MediaAutomation.sln
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.361
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraSolutions.MediaAutomation", "src\AuraSolutions.MediaAutomation\AuraSolutions.MediaAutomation.csproj", "{4E23C1A1-2B4A-4C57-8E82-77F670A8B88C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraSolutions.Core", "src\AuraSolutions.Core\AuraSolutions.Core.csproj", "{FDBEB00B-BB2C-470F-9AA7-5ABB6EF144D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +16,15 @@ Global
 		{4E23C1A1-2B4A-4C57-8E82-77F670A8B88C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E23C1A1-2B4A-4C57-8E82-77F670A8B88C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E23C1A1-2B4A-4C57-8E82-77F670A8B88C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDBEB00B-BB2C-470F-9AA7-5ABB6EF144D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDBEB00B-BB2C-470F-9AA7-5ABB6EF144D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDBEB00B-BB2C-470F-9AA7-5ABB6EF144D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDBEB00B-BB2C-470F-9AA7-5ABB6EF144D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5D817E9B-B0BD-46D7-8609-28A75F275450}
 	EndGlobalSection
 EndGlobal
